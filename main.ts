@@ -19,6 +19,53 @@
 //gravity
 //update springs then anchors
 
+let crossed = true
+let globalstiffness = 500
+let globalgravity = new Vector(0,1000)
+let globaldampening = 4
+let globalresolution = 10
+
+
+$('#crossed').addEventListener('change', (e:any) => {
+    crossed = e.target.checked
+    regenNet()
+})
+
+$('#stifness').addEventListener('input', e => {
+    e.target.valueAsNumber
+    globalstiffness = e.target.value
+})
+
+$('#gravity').addEventListener('input', e => {
+    globalgravity.y = e.target.value
+})
+
+$('#dampening').addEventListener('input', e => {
+    globaldampening = e.target.valueAsNumber
+})
+
+$('#resolution').addEventListener('input', e => {
+    globalresolution = e.target.value
+    regenNet()
+})
+
+$('#regen').addEventListener('click', e => {
+    regenNet()
+})
+
+var net = null
+function regenNet(){
+
+    // net = generateNet(new Vector(200,200),new Vector(10,10),new Vector(50,50))
+    var spacing = 500 / globalresolution
+    net = generateNet(new Vector(200,200),new Vector(globalresolution,globalresolution),new Vector(spacing,spacing))
+    anchors = []
+    springs = []
+    anchors.push(...net.anchors)
+    springs.push(...net.springs)
+}
+
+
 
 var screensize = new Vector(document.documentElement.clientWidth,document.documentElement.clientHeight)
 var crret = createCanvas(screensize.x,screensize.y)
@@ -64,9 +111,8 @@ var springs = [
     // })
 ]
 
-var net = generateNet(new Vector(200,200),new Vector(10,10),new Vector(50,50))
-anchors.push(...net.anchors)
-springs.push(...net.springs)
+regenNet()
+
 
 loop((dt) => {
     dt = clamp(dt,0.004,0.02)
@@ -84,7 +130,7 @@ loop((dt) => {
     }
 })
 
-document.addEventListener('mousedown',e => {
+canvas.addEventListener('mousedown',e => {
     var mouesepos = getMousePos(canvas,e)
     for(var anchor of anchors){
         
@@ -106,8 +152,8 @@ function generateNet(origin:Vector, size:Vector,spacing:Vector){
             pos:abs,
             mass:1,
             locked:index.y == 0,
-            damping:4,
-            acc:new Vector(0,1000)
+            // damping:4,
+            acc:globalgravity
         })
         anchormap[`${index.x}:${index.y}`] = newanchor
         anchors.push(newanchor)
@@ -123,7 +169,7 @@ function generateNet(origin:Vector, size:Vector,spacing:Vector){
                 a:self,
                 b:neighbour,
                 length:self.pos.to(neighbour.pos).length(),
-                stiffness:500,
+                // stiffness:500,
             }))
         }
     })
@@ -144,9 +190,14 @@ function getNeighbours(index:Vector,gridsize:Vector):Vector[]{
         new Vector(-1,0),
         new Vector(0,1),
         new Vector(0,-1),
-        new Vector(1,1),
-        new Vector(1,-1),
     ]
+
+    if(crossed){
+        neighboursdirs.push(
+            new Vector(1,1),
+            new Vector(1,-1),
+        )
+    }
 
     for(var dir of neighboursdirs){
         var abs = index.c().add(dir)
@@ -163,5 +214,8 @@ function boxCheck(pos:Vector,min:Vector,max:Vector):boolean{
     return inRange(min.x,max.x,pos.x) && inRange(min.y,max.y,pos.y)
 }
 
+function $(query){
+    return document.querySelector(query) as any
+}
 
     

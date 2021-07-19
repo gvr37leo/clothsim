@@ -18,7 +18,7 @@ class Anchor{
         if(this.locked == false){
             this.vel.add(this.acc.c().scale(dt))
 
-            this.vel.add(this.vel.c().scale(-1).scale(this.damping * dt))
+            this.vel.add(this.vel.c().scale(-1).scale(globaldampening * dt))
 
 
             this.pos.add(this.vel.c().scale(dt))
@@ -39,7 +39,7 @@ class Spring{
 
     update(dt){
         var dist = this.a.pos.to(this.b.pos).length()
-        var force = (this.length - dist) * -this.stiffness * dt// contracting positive, expanding negative
+        var force = (this.length - dist) * -globalstiffness * dt// contracting positive, expanding negative
         this.a.applyforce(this.a.pos.to(this.b.pos).normalize(), force / 2)
         this.b.applyforce(this.b.pos.to(this.a.pos).normalize(), force / 2)
     }
